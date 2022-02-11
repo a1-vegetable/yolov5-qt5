@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Modified by: Ruihao
 # @ProjectName:yolov5-pyqt5
-
+import os
 import sys
 import cv2
 import time
@@ -37,7 +37,9 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
         self.vid_writer = None
 
         # 权重初始文件名
-        self.openfile_name_model = None
+        self.openfile_name_model1 = None
+        self.openfile_name_model2 = None
+
 
     # 控件绑定相关操作
     def init_slots(self):
@@ -45,7 +47,7 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
         self.ui.pushButton_video.clicked.connect(self.button_video_open)
         self.ui.pushButton_camer.clicked.connect(self.button_camera_open)
         self.ui.pushButton_weights.clicked.connect(self.open_model)
-        self.ui.pushButton_init.clicked.connect(self.model_init)
+        self.ui.pushButton_init.clicked.connect(self.open_model_2)
         self.ui.pushButton_stop.clicked.connect(self.button_video_stop)
         self.ui.pushButton_finish.clicked.connect(self.finish_detect)
 
@@ -53,13 +55,26 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
 
     # 打开权重文件
     def open_model(self):
-        self.openfile_name_model, _ = QFileDialog.getOpenFileName(self.ui.pushButton_weights, '选择weights文件',
-                                                             'weights/')
-        if not self.openfile_name_model:
-            QtWidgets.QMessageBox.warning(self, u"Warning", u"打开权重失败", buttons=QtWidgets.QMessageBox.Ok,
-                                          defaultButton=QtWidgets.QMessageBox.Ok)
-        else:
-            print('加载weights文件地址为：' + str(self.openfile_name_model))
+
+        self.openfile_name_model1 = r"D:\yolov5-qt5\best.pt"
+        self.model_init()
+        self.button_camera_open()
+
+
+
+    def open_model_2(self):
+        self.openfile_name_model1 = r"D:\yolov5-qt5\yolov5s.pt"
+        self.model_init()
+
+
+    # def open_model(self):
+    #     self.openfile_name_model, _ = QFileDialog.getOpenFileName(self.ui.pushButton_weights, '选择weights文件',
+    #                                                               'weights/')
+    #     if not self.openfile_name_model:
+    #         QtWidgets.QMessageBox.warning(self, u"Warning", u"打开权重失败", buttons=QtWidgets.QMessageBox.Ok,
+    #                                       defaultButton=QtWidgets.QMessageBox.Ok)
+    #     else:
+    #         print('加载weights文件地址为：' + str(self.openfile_name_model))
 
     # 加载相关参数，并初始化模型
     def model_init(self):
@@ -88,9 +103,9 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
         source, weights, view_img, save_txt, imgsz = self.opt.source, self.opt.weights, self.opt.view_img, self.opt.save_txt, self.opt.img_size
 
         # 若openfile_name_model不为空，则使用此权重进行初始化
-        if self.openfile_name_model:
-            weights = self.openfile_name_model
-            print("Using button choose model")
+        if self.openfile_name_model1:
+            weights = self.openfile_name_model1
+            # print("Using button choose model")
 
         self.device = select_device(self.opt.device)
         self.half = self.device.type != 'cpu'  # half precision only supported on CUDA
@@ -107,10 +122,10 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
         # Get names and colors
         self.names = self.model.module.names if hasattr(self.model, 'module') else self.model.names
         self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in self.names]
-        print("model initial done")
+        # print("model initial done")
         # 设置提示框
-        QtWidgets.QMessageBox.information(self, u"Notice", u"模型加载完成", buttons=QtWidgets.QMessageBox.Ok,
-                                      defaultButton=QtWidgets.QMessageBox.Ok)
+        # QtWidgets.QMessageBox.information(self, u"Notice", u"模型加载完成", buttons=QtWidgets.QMessageBox.Ok,
+        #                               defaultButton=QtWidgets.QMessageBox.Ok)
 
     # 目标检测
     def detect(self, name_list, img):
@@ -119,6 +134,7 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
         :param img: 待检测图片
         :return: info_show:检测输出的文字信息
         '''
+
         showimg = img
         with torch.no_grad():
             img = letterbox(img, new_shape=self.opt.img_size)[0]
@@ -239,7 +255,7 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
         if img is not None:
             info_show = self.detect(name_list, img) # 检测结果写入到原始img上
             self.vid_writer.write(img) # 检测结果写入视频
-            print(info_show)
+            # print(info_show)
             # 检测信息显示在界面
             self.ui.textBrowser.setText(info_show)
 
@@ -296,6 +312,7 @@ class UI_Logic_Window(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
+    # os.system("python D:\yolov5-qt5\detect.py")
     app = QtWidgets.QApplication(sys.argv)
     current_ui = UI_Logic_Window()
     current_ui.show()
